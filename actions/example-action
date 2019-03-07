@@ -1,0 +1,6 @@
+#!/usr/local/sbin/charm-env python3
+
+from lib_gitlab_runner import GitlabrunnerHelper
+
+helper = GitlabrunnerHelper()
+helper.action_function()

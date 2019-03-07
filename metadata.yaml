@@ -1,0 +1,24 @@
+name: gitlab-runner
+summary: GitLab Runner - runs continuous integration (CI) jobs
+maintainer: James <James@kia.gaia>
+description: |
+  GitLab Runner runs tests and sends the results to GitLab. GitLab
+  Continuous Integration (CI) service (included with GitLab) coordinates
+  the testing.
+tags:
+  # Replace "misc" with one or more whitelisted tags from this list:
+  # https://jujucharms.com/docs/stable/authors-charm-metadata
+  - misc
+subordinate: false
+series:
+  - bionic
+  - xenial
+# provides:
+#   provides-relation:
+#     interface: interface-name
+# requires:
+#   requires-relation:
+#     interface: interface-name
+# peers:
+#   peer-relation:
+#     interface: interface-name
