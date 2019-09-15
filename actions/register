@@ -1,0 +1,6 @@
+#!/usr/local/sbin/charm-env python3
+
+from libgitlabrunner import GitLabRunner
+
+ghr = GitLabRunner()
+ghr.register()

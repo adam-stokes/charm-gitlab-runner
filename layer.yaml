@@ -1,0 +1,13 @@
+# exclude the interfaces and layers folders we use for submodules
+exclude:
+  - interfaces
+  - layers
+# include required layers here
+includes:
+  - layer:basic
+  - layer:version
+  - interface:gitlab-ci
+options:
+  version:
+    file_name: "repo-info"
+repo: https://github.com/pirate-charmers/layer-gitlab-runner.git

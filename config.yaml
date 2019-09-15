@@ -1,0 +1,9 @@
+options:
+  gitlab-token: 
+    type: string
+    default: ""
+    description: "The shared CI runner key provided by GitLab"
+  gitlab-uri:
+    type: string
+    default: ""
+    description: "The URI used when registering and communicating with the GitLab CI server"

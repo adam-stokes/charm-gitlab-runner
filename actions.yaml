@@ -1,0 +1,2 @@
+register:
+  description: "Manually register with the GitLab CI server"

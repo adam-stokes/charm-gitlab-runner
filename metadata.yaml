@@ -1,0 +1,22 @@
+name: gitlab-runner 
+summary: GitLab Runner component for running GitLab CI jobs 
+maintainer: James Hebden <james@hebden.net.au>
+description: |
+  GitLab Runner is the open source project that is used to run your jobs and
+  send the results back to GitLab.
+  It is used in conjunction with GitLab CI, the open-source continuous integration
+  service included with GitLab, which coordinates the jobs.
+tags:
+  - application_development 
+subordinate: false
+series:
+  - bionic
+provides:
+  gitlab-ci:
+    interface: gitlab-ci
+# requires:
+#   requires-relation:
+#     interface: interface-name
+# peers:
+#   peer-relation:
+#     interface: interface-name
