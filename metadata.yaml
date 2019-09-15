@@ -11,9 +11,9 @@ tags:
 subordinate: false
 series:
   - bionic
-provides:
-  gitlab-ci:
-    interface: gitlab-ci
+# provides:
+#  gitlab-ci:
+#    interface: gitlab-ci
 # requires:
 #   requires-relation:
 #     interface: interface-name

@@ -114,6 +114,20 @@ def mock_gethostname(monkeypatch):
 
 
 @pytest.fixture
+def mock_action_set(monkeypatch):
+    mocked_action_set = mock.Mock(returnvalue=True)
+    monkeypatch.setattr("charmhelpers.core.hookenv.action_set", mocked_action_set)
+    return mocked_action_set
+
+
+@pytest.fixture
+def mock_action_fail(monkeypatch):
+    mocked_action_fail = mock.Mock()
+    monkeypatch.setattr("charmhelpers.core.hookenv.action_fail", mocked_action_fail)
+    return mocked_action_fail
+
+
+@pytest.fixture
 def gitlabrunner(tmpdir, mock_hookenv_config, mock_charm_dir, monkeypatch):
     from libgitlabrunner import GitLabRunner
 

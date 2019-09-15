@@ -1,6 +1,11 @@
 #!/usr/local/sbin/charm-env python3
 
 from libgitlabrunner import GitLabRunner
+from charmhelpers.core.hookenv import action_fail, action_set
 
 ghr = GitLabRunner()
-ghr.register()
+if ghr.register():
+    action_set({'output': 'Registration completed.'})
+else:
+    action_fail('Registration failed. See unit debug log for details.')
+    
