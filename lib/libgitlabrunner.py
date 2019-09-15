@@ -16,7 +16,7 @@ class GitLabRunner:
         self.kv = unitdata.kv()
         self.gitlab_token = False
         self.gitlab_uri = False
-        self.gethostname = gethostname()
+        self.hostname = gethostname()
         if self.charm_config["gitlab-token"]:
             self.gitlab_token = self.charm_config["gitlab-token"]
         if self.charm_config["gitlab-uri"]:
