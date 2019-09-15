@@ -54,6 +54,13 @@ def mock_charm_dir(monkeypatch):
 
 
 @pytest.fixture
+def mock_service(monkeypatch):
+    mocked_service = mock.Mock(returnvalue=True)
+    monkeypatch.setattr("libgitlabrunner.service", mocked_service)
+    return mocked_service
+
+
+@pytest.fixture
 def mock_apt_install(monkeypatch):
     mocked_apt_install = mock.Mock(returnvalue=True)
     monkeypatch.setattr("libgitlabrunner.apt_install", mocked_apt_install)

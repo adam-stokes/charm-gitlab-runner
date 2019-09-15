@@ -3,7 +3,7 @@ import subprocess
 from socket import gethostname
 
 from charmhelpers.core import hookenv, unitdata
-from charmhelpers.core.host import get_distrib_codename
+from charmhelpers.core.host import get_distrib_codename, service
 from charmhelpers.fetch import add_source, apt_install, apt_update
 
 
@@ -22,6 +22,14 @@ class GitLabRunner:
         if self.charm_config["gitlab-uri"]:
             self.gitlab_uri = self.charm_config["gitlab-uri"]
 
+    def ensure_services(self):
+        """Ensure services (docker, gitlab-runner) are enabled and running when installed and registered."""
+        if self.kv.get("registered", False):
+            service("enable", "docker")
+            service("start", "docker")
+            service("enable", "gitlab-runner")
+            service("start", "gitlab-runner")
+
     def register(self):
         """Register this GitLab runner with the GitLab CI server."""
         if (
@@ -32,16 +40,14 @@ class GitLabRunner:
             hookenv.log("Registering GitLab runner with {}".format(self.gitlab_uri))
             hookenv.status_set("maintenance", "Registering with GitLab")
             command = (
-                "sudo gitlab-runner register "
+                "/usr/bin/gitlab-runner register "
                 "--non-interactive "
                 "--url {} "
                 "--registration-token {} "
                 "--name {} "
                 "--tag-list juju,docker "
                 "--executor docker"
-            ).format(self.gitlab_uri,
-                     self.gitlab_token,
-                     self.hostname)
+            ).format(self.gitlab_uri, self.gitlab_token, self.hostname)
             subprocess.check_call(command, stderr=subprocess.STDOUT)
         elif self.kv.get("registered", False):
             hookenv.log("Already registered, ignoring request to register")
@@ -71,7 +77,7 @@ class GitLabRunner:
 
     def install_docker(self):
         """Install Docker which is required for running jobs."""
-        apt_install('docker.io')
+        apt_install("docker.io")
 
     def upgrade(self):
         """Install or upgrade the GitLab runner packages, adding APT sources as needed."""
