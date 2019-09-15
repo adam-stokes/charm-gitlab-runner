@@ -1,12 +1,17 @@
+"""GitLab Runner helper library for charm operations."""
+import subprocess
+from socket import gethostname
+
 from charmhelpers.core import hookenv, unitdata
 from charmhelpers.core.host import get_distrib_codename
 from charmhelpers.fetch import add_source, apt_install, apt_update
-from socket import gethostname
-import subprocess
 
 
 class GitLabRunner:
+    """Provide various charm helper methods to installing and configuring GitLab Runner."""
+
     def __init__(self):
+        """Bootstrap the class."""
         self.charm_config = hookenv.config()
         self.kv = unitdata.kv()
         self.gitlab_token = False
@@ -48,6 +53,7 @@ class GitLabRunner:
         return True
 
     def add_sources(self):
+        """Add APT sources to allow installation of GitLab Runner from GitLab's packages."""
         # https://packages.gitlab.com/runner/gitlab-runner/gpgkey
         # https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ bionic main
         distro = get_distrib_codename()
@@ -63,13 +69,19 @@ class GitLabRunner:
         add_source(apt_line, apt_key)
         return True
 
+    def install_docker(self):
+        """Install Docker which is required for running jobs."""
+        apt_install('docker.io')
+
     def upgrade(self):
+        """Install or upgrade the GitLab runner packages, adding APT sources as needed."""
         self.add_sources()
         apt_update()
         apt_install("gitlab-runner")
         return True
 
     def configure(self):
+        """Upgrade and register GitLab Runner, perform configuration changes when charm configuration is modified."""
         self.upgrade()
         self.register()
         return True
