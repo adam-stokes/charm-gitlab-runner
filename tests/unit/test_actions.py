@@ -4,7 +4,7 @@ import imp
 import mock
 
 
-def test_register_action(self, gitlabrunner, monkeypatch, mock_action_set, mock_action_fail):
+def test_register_action(gitlabrunner, monkeypatch, mock_action_set, mock_action_fail):
     """Unit test the register action."""
     mock_function = mock.Mock()
     monkeypatch.setattr(gitlabrunner, 'register', mock_function)
