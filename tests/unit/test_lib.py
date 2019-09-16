@@ -1,14 +1,17 @@
 #!/usr/bin/python3
+"""Unit test helper module functions."""
 import subprocess
+
 from mock import call
 
 
 def test_pytest():
+    """Verify pytest is working."""
     assert True
 
 
 def test_gitlabrunner(gitlabrunner):
-    """ See if the helper fixture works to load charm configs """
+    """See if the helper fixture works to load charm configs."""
     assert isinstance(gitlabrunner.charm_config, dict)
     assert isinstance(gitlabrunner.kv, object)
 
@@ -20,12 +23,14 @@ def test_upgrade(
     mock_get_distrib_codename,
     mock_add_source,
 ):
+    """Test the upgrade function."""
     gitlabrunner.upgrade()
     mock_apt_update.assert_called_once()
     mock_apt_install.assert_called_once()
 
 
 def test_ensure_services(gitlabrunner, mock_service):
+    """Test the ensure_services function of the helper module."""
     gitlabrunner.ensure_services()
     assert mock_service.call_count == 0
     gitlabrunner.kv.set("registered", True)
@@ -51,6 +56,7 @@ def test_configure(
     mock_check_call,
     mock_add_source,
 ):
+    """Test the configure method called when the charm configured GitLab runner."""
     gitlabrunner.configure()
     assert mock_apt_update.call_count == 1
     assert mock_apt_install.call_count == 1
