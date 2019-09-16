@@ -65,10 +65,11 @@ def test_configure(
         "/usr/bin/gitlab-runner",
         "register",
         "--non-interactive",
-        "--url mocked-uri",
-        "--registration-token mocked-token",
-        "--name mocked-hostname",
+        "--url 'mocked-uri'",
+        "--registration-token 'mocked-token'",
+        "--name 'mocked-hostname'",
         "--tag-list juju,docker",
         "--executor docker",
+        "--docker-image ubuntu:latest",
     ]
     mock_check_call.assert_called_once_with(test_command, stderr=subprocess.STDOUT)

@@ -43,11 +43,12 @@ class GitLabRunner:
                 "/usr/bin/gitlab-runner",
                 "register",
                 "--non-interactive",
-                "--url {}".format(self.gitlab_uri),
-                "--registration-token {}".format(self.gitlab_token),
-                "--name {}".format(self.hostname),
+                "--url '{}'".format(self.gitlab_uri),
+                "--registration-token '{}'".format(self.gitlab_token),
+                "--name '{}'".format(self.hostname),
                 "--tag-list juju,docker",
                 "--executor docker",
+                "--docker-image ubuntu:latest",
             ]
             subprocess.check_call(command, stderr=subprocess.STDOUT)
         elif self.kv.get("registered", False):
