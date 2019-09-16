@@ -21,7 +21,8 @@ flake8:
 pytest:
   stage: test 
   script:
-    - make unittest 
+    - make unittest
+  coverage: '/^TOTAL.+?(\d+\%)$/'
   artifacts:
     paths:
       - report/unit
