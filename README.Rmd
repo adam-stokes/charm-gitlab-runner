@@ -46,3 +46,9 @@ module-scoped event loop is provided as to support fixtures with scopes beyond
 'function'.
 
 Several generic fixtures are provided in conftest.py, and reuse is encouraged.
+
+TODO
+====
+
+- Pull required images
+- Add relation-based registration
