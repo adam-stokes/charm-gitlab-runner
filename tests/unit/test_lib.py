@@ -61,13 +61,14 @@ def test_configure(
     gitlabrunner.configure()
     assert mock_apt_update.call_count == 2
     assert mock_apt_install.call_count == 2
-    test_command = (
-        "/usr/bin/gitlab-runner register "
-        "--non-interactive "
-        "--url mocked-uri "
-        "--registration-token mocked-token "
-        "--name mocked-hostname "
-        "--tag-list juju,docker "
-        "--executor docker"
-    )
+    test_command = [
+        "/usr/bin/gitlab-runner",
+        "register",
+        "--non-interactive",
+        "--url mocked-uri",
+        "--registration-token mocked-token",
+        "--name mocked-hostname",
+        "--tag-list juju,docker",
+        "--executor docker",
+    ]
     mock_check_call.assert_called_once_with(test_command, stderr=subprocess.STDOUT)

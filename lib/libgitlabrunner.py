@@ -39,15 +39,16 @@ class GitLabRunner:
         ):
             hookenv.log("Registering GitLab runner with {}".format(self.gitlab_uri))
             hookenv.status_set("maintenance", "Registering with GitLab")
-            command = (
-                "/usr/bin/gitlab-runner register "
-                "--non-interactive "
-                "--url {} "
-                "--registration-token {} "
-                "--name {} "
-                "--tag-list juju,docker "
-                "--executor docker"
-            ).format(self.gitlab_uri, self.gitlab_token, self.hostname)
+            command = [
+                "/usr/bin/gitlab-runner",
+                "register",
+                "--non-interactive",
+                "--url {}".format(self.gitlab_uri),
+                "--registration-token {}".format(self.gitlab_token),
+                "--name {}".format(self.hostname),
+                "--tag-list juju,docker",
+                "--executor docker",
+            ]
             subprocess.check_call(command, stderr=subprocess.STDOUT)
         elif self.kv.get("registered", False):
             hookenv.log("Already registered, ignoring request to register")
