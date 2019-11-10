@@ -16,16 +16,6 @@ sources = [
 ]
 
 
-# Uncomment for re-using the current model, useful for debugging functional tests
-# @pytest.fixture(scope='module')
-# async def model():
-#     from juju.model import Model
-#     model = Model()
-#     await model.connect_current()
-#     yield model
-#     await model.disconnect()
-
-
 # Custom fixtures
 @pytest.fixture(params=series)
 def series(request):
