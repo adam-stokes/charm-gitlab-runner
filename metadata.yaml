@@ -14,9 +14,9 @@ series:
 # provides:
 #  gitlab-ci:
 #    interface: gitlab-ci
-# requires:
-#   requires-relation:
-#     interface: interface-name
+requires:
+  requires-relation:
+    interface: gitlab-ci
 # peers:
 #   peer-relation:
 #     interface: interface-name
