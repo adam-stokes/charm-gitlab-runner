@@ -15,7 +15,7 @@ series:
 #  gitlab-ci:
 #    interface: gitlab-ci
 requires:
-  requires-relation:
+  runner:
     interface: gitlab-ci
 # peers:
 #   peer-relation:

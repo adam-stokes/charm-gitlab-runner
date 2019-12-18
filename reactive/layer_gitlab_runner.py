@@ -1,4 +1,6 @@
 """Reactive charm layer for installing and configuring GitLab Runner."""
+from charmhelpers.core import hookenv
+
 from charms.reactive import (
     clear_flag,
     endpoint_from_flag,
@@ -35,19 +37,20 @@ def configure_and_enable_gitlab_runner():
     glr.ensure_services()
 
 
-@when("endpoint.gitlab-ci.available")
+@when("endpoint.runner.available")
 @when_not("runner.registered")
 def register_runner():
     """Register runner via relation."""
-    endpoint = endpoint_from_flag("endpoint.gitlab-ci.available")
+    endpoint = endpoint_from_flag("endpoint.runner.available")
     uri, token = endpoint.get_server_credentials()
-    glr.gitlab_token = uri
-    glr.gitlab_uri = token
+    glr.gitlab_token = token
+    glr.gitlab_uri = uri
+    hookenv.log("Registering runner url/token: {}/{}".format(uri, token))
     glr.register()
     set_flag("runner.registered")
 
 
-@when("endpoint.gitlab-ci.departed")
+@when("endpoint.runner.departed")
 def handle_relatin_departed():
     """Handle runner relation departure."""
     clear_flag("runner.registered")

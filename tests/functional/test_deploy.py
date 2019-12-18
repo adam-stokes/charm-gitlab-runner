@@ -76,7 +76,7 @@ async def test_gitlab_deploy(model):
     subprocess.check_call(cmd)
 
 
-@pytest.mark.timeout(300)
+@pytest.mark.timeout(420)
 @pytest.mark.deploy
 async def test_charm_upgrade(model, app):
     """Upgrade the charmstore version of the charm to the locally installed one."""
@@ -98,7 +98,7 @@ async def test_charm_upgrade(model, app):
 
 
 # Tests
-@pytest.mark.timeout(300)
+@pytest.mark.timeout(420)
 async def test_gitlabrunner_status(model, app):
     """Verify status of deployed unit."""
     # Verifies status for all deployed series of the charm
@@ -137,3 +137,26 @@ async def test_file_stat(app, jujutools):
     assert stat.filemode(fstat.st_mode) == "-rw-r--r--"
     assert fstat.st_uid == 0
     assert fstat.st_gid == 0
+
+
+@pytest.mark.timeout(420)
+async def test_gitlab_status(model):
+    """Verify status of supporting deploy."""
+    # Verifies status of the gitlab deploy to test against
+    redis = model.applications["redis"]
+    postgresql = model.applications["postgresql"]
+    gitlab = model.applications["gitlab"]
+    await model.block_until(lambda: redis.status == "active")
+    await model.block_until(lambda: postgresql.status == "active")
+    await model.block_until(lambda: gitlab.status == "active")
+
+
+@pytest.mark.relate
+@pytest.mark.timeout(60)
+async def test_add_relation(model, app):
+    """Verify the runner relation completes."""
+    gitlab = model.applications["gitlab"]
+    await model.block_until(lambda: gitlab.status == "active")
+    await app.add_relation("runner", "gitlab:runner")
+    await model.block_until(lambda: app.status == "maintenance")
+    await model.block_until(lambda: app.status == "active")

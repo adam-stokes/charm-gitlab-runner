@@ -63,7 +63,9 @@ class GitLabRunner:
             hookenv.log("Could not register gitlab runner due to missing token or uri")
             hookenv.status_set("blocked", "Unregistered due to missing token or URI")
             return False
-        hookenv.status_set("active", "Registered with {}")
+        hookenv.status_set(
+            "active", "Registered with {}".format(self.gitlab_uri.lstrip("http://"))
+        )
         return True
 
     def add_sources(self):
