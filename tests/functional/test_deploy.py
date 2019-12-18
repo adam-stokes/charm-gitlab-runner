@@ -98,7 +98,7 @@ async def test_charm_upgrade(model, app):
 
 
 # Tests
-@pytest.mark.timeout(420)
+@pytest.mark.timeout(600)
 async def test_gitlabrunner_status(model, app):
     """Verify status of deployed unit."""
     # Verifies status for all deployed series of the charm
