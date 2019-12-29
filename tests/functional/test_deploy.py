@@ -158,5 +158,4 @@ async def test_add_relation(model, app):
     gitlab = model.applications["gitlab"]
     await model.block_until(lambda: gitlab.status == "active")
     await app.add_relation("runner", "gitlab:runner")
-    await model.block_until(lambda: app.status == "maintenance")
     await model.block_until(lambda: app.status == "active")
