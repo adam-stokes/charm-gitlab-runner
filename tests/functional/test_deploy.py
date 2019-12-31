@@ -149,6 +149,7 @@ async def test_gitlab_status(model):
     await model.block_until(lambda: redis.status == "active")
     await model.block_until(lambda: postgresql.status == "active")
     await model.block_until(lambda: gitlab.status == "active")
+    await model.block_until(lambda: gitlab.units[0].agent_status == "idle")
 
 
 @pytest.mark.relate

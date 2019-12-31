@@ -1,7 +1,7 @@
 series: bionic
 applications:
   gitlab:
-    charm: cs:~alchemy-charmers/gitlab
+    charm: cs:~pirate-charmers/gitlab
     num_units: 1
   redis:
     charm: cs:~redis-charmers/redis
