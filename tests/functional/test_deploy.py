@@ -2,6 +2,7 @@
 import os
 import stat
 import subprocess
+import time
 
 import pytest
 
@@ -146,10 +147,14 @@ async def test_gitlab_status(model):
     redis = model.applications["redis"]
     postgresql = model.applications["postgresql"]
     gitlab = model.applications["gitlab"]
-    await model.block_until(lambda: redis.status == "active")
-    await model.block_until(lambda: postgresql.status == "active")
-    await model.block_until(lambda: gitlab.status == "active")
-    await model.block_until(lambda: gitlab.units[0].agent_status == "idle")
+    count = 10
+    while count > 0:
+        await model.block_until(lambda: redis.status == "active")
+        await model.block_until(lambda: postgresql.status == "active")
+        await model.block_until(lambda: gitlab.status == "active")
+        await model.block_until(lambda: gitlab.units[0].agent_status == "idle")
+        count = count - 1
+        time.sleep(1)
 
 
 @pytest.mark.relate
