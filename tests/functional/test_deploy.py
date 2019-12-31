@@ -2,6 +2,7 @@
 import os
 import stat
 import subprocess
+import time
 
 import pytest
 
@@ -14,16 +15,6 @@ sources = [
     ("local", "{}/builds/gitlab-runner".format(juju_repository)),
     # ('jujucharms', 'cs:...'),
 ]
-
-
-# Uncomment for re-using the current model, useful for debugging functional tests
-# @pytest.fixture(scope='module')
-# async def model():
-#     from juju.model import Model
-#     model = Model()
-#     await model.connect_current()
-#     yield model
-#     await model.disconnect()
 
 
 # Custom fixtures
@@ -42,16 +33,18 @@ def source(request):
 @pytest.fixture
 async def app(model, series, source):
     """Provide access to the current app test parameter."""
-    app_name = "layer-gitlab-runner-{}-{}".format(series, source[0])
+    app_name = "gitlab-runner-{}-{}".format(series, source[0])
     return await model._wait_for_new("application", app_name)
 
 
-async def test_layergitlabrunner_deploy(model, series, source, request):
+@pytest.mark.timeout(30)
+@pytest.mark.deploy
+async def test_gitlabrunner_deploy(model, series, source, request):
     """Deploy gitlab-runner."""
     # Starts a deploy for each series
     # Using subprocess b/c libjuju fails with JAAS
     # https://github.com/juju/python-libjuju/issues/221
-    application_name = "layer-gitlab-runner-{}-{}".format(series, source[0])
+    application_name = "gitlab-runner-{}-{}".format(series, source[0])
     cmd = [
         "juju",
         "deploy",
@@ -67,10 +60,29 @@ async def test_layergitlabrunner_deploy(model, series, source, request):
     subprocess.check_call(cmd)
 
 
+@pytest.mark.timeout(60)
+@pytest.mark.deploy
+async def test_gitlab_deploy(model):
+    """Deploy gitlab bundle."""
+    # Starts a deploy for each series
+    # Using subprocess b/c libjuju fails with JAAS
+    # https://github.com/juju/python-libjuju/issues/221
+    cmd = [
+        "juju",
+        "deploy",
+        "./tests/functional/gitlab.bundle",
+        "-m",
+        model.info.name,
+    ]
+    subprocess.check_call(cmd)
+
+
+@pytest.mark.timeout(420)
+@pytest.mark.deploy
 async def test_charm_upgrade(model, app):
     """Upgrade the charmstore version of the charm to the locally installed one."""
     if app.name.endswith("local"):
-        pytest.skip("No need to upgrade the local deploy")
+        pytest.skip()  # No need to upgrade the local deploy
     unit = app.units[0]
     await model.block_until(lambda: unit.agent_status == "idle")
     subprocess.check_call(
@@ -87,7 +99,8 @@ async def test_charm_upgrade(model, app):
 
 
 # Tests
-async def test_layergitlabrunner_status(model, app):
+@pytest.mark.timeout(600)
+async def test_gitlabrunner_status(model, app):
     """Verify status of deployed unit."""
     # Verifies status for all deployed series of the charm
     await model.block_until(lambda: app.status == "blocked")
@@ -95,6 +108,7 @@ async def test_layergitlabrunner_status(model, app):
     await model.block_until(lambda: unit.agent_status == "idle")
 
 
+@pytest.mark.timeout(30)
 async def test_register_action(app):
     """Test action for registering a runner."""
     unit = app.units[0]
@@ -103,6 +117,7 @@ async def test_register_action(app):
     assert action.status == "failed"
 
 
+@pytest.mark.timeout(30)
 async def test_run_command(app, jujutools):
     """Test the running of a command on the unit with expected output."""
     unit = app.units[0]
@@ -112,6 +127,7 @@ async def test_run_command(app, jujutools):
     assert unit.public_address in results["Stdout"]
 
 
+@pytest.mark.timeout(30)
 async def test_file_stat(app, jujutools):
     """Test the contents of a file on the unit with expected contents."""
     unit = app.units[0]
@@ -122,3 +138,30 @@ async def test_file_stat(app, jujutools):
     assert stat.filemode(fstat.st_mode) == "-rw-r--r--"
     assert fstat.st_uid == 0
     assert fstat.st_gid == 0
+
+
+@pytest.mark.timeout(420)
+async def test_gitlab_status(model):
+    """Verify status of supporting deploy."""
+    # Verifies status of the gitlab deploy to test against
+    redis = model.applications["redis"]
+    postgresql = model.applications["postgresql"]
+    gitlab = model.applications["gitlab"]
+    count = 10
+    while count > 0:
+        await model.block_until(lambda: redis.status == "active")
+        await model.block_until(lambda: postgresql.status == "active")
+        await model.block_until(lambda: gitlab.status == "active")
+        await model.block_until(lambda: gitlab.units[0].agent_status == "idle")
+        count = count - 1
+        time.sleep(1)
+
+
+@pytest.mark.relate
+@pytest.mark.timeout(60)
+async def test_add_relation(model, app):
+    """Verify the runner relation completes."""
+    gitlab = model.applications["gitlab"]
+    await model.block_until(lambda: gitlab.status == "active")
+    await app.add_relation("runner", "gitlab:runner")
+    await model.block_until(lambda: app.status == "active")
