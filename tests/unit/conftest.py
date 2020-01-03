@@ -4,6 +4,7 @@ import mock
 
 import pytest
 
+from charmhelpers.core import unitdata
 
 # If layer options are used, add this to layergitlabrunner
 # and import layer in libgitlabrunner
@@ -94,6 +95,7 @@ def mock_apt_update(monkeypatch):
 @pytest.fixture
 def mock_add_source(monkeypatch):
     """Mock the charmhelpers fetch add_source method."""
+
     def print_add_source(line, key):
         print("Mocked add source: {} ({})".format(line, key))
         return True
@@ -108,13 +110,16 @@ def mock_add_source(monkeypatch):
 def mock_get_distrib_codename(monkeypatch):
     """Mock the distribution codename as returned by get_destrib_codename."""
     mocked_get_distrib_codename = mock.Mock(returnvalue="bionic")
-    monkeypatch.setattr("libgitlabrunner.get_distrib_codename", mocked_get_distrib_codename)
+    monkeypatch.setattr(
+        "libgitlabrunner.get_distrib_codename", mocked_get_distrib_codename
+    )
     return mocked_get_distrib_codename
 
 
 @pytest.fixture
 def mock_check_call(monkeypatch):
     """Mock check_call to mock process executions."""
+
     def print_check_call(args, *, kwargs={}):
         print(args)
         return True
@@ -136,9 +141,8 @@ def mock_log(monkeypatch):
 @pytest.fixture
 def mock_gethostname(monkeypatch):
     """Mock gethostname to return consistent hostnames during testing."""
-    mocked_gethostname = mock.Mock(returnvalue='mocked-hostname')
-    monkeypatch.setattr("libgitlabrunner.gethostname",
-                        mocked_gethostname)
+    mocked_gethostname = mock.Mock(returnvalue="mocked-hostname")
+    monkeypatch.setattr("libgitlabrunner.gethostname", mocked_gethostname)
     return mocked_gethostname
 
 
@@ -159,7 +163,22 @@ def mock_action_fail(monkeypatch):
 
 
 @pytest.fixture
-def gitlabrunner(tmpdir, mock_hookenv_config, mock_charm_dir, mock_template, monkeypatch):
+def mock_unit_db(monkeypatch):
+    """Mock the key value store."""
+    mock_kv = mock.Mock()
+    mock_kv.return_value = unitdata.Storage(path=":memory:")
+    monkeypatch.setattr("libgitlabrunner.unitdata.kv", mock_kv)
+
+
+@pytest.fixture
+def gitlabrunner(
+    tmpdir,
+    mock_hookenv_config,
+    mock_charm_dir,
+    mock_template,
+    mock_unit_db,
+    monkeypatch,
+):
     """Mock the GitLab runner helper module used throughout the charm."""
     from libgitlabrunner import GitLabRunner
 

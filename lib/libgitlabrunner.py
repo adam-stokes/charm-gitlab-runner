@@ -20,8 +20,12 @@ class GitLabRunner:
         self.executor_dir = "/opt/lxd-executor"
         if self.charm_config["gitlab-token"]:
             self.gitlab_token = self.charm_config["gitlab-token"]
+        else:
+            self.gitlab_token = self.kv.get("gitlab_token", None)
         if self.charm_config["gitlab-uri"]:
             self.gitlab_uri = self.charm_config["gitlab-uri"]
+        else:
+            self.gitlab_uri = self.kv.get("gitlab_uri", None)
 
     def ensure_services(self):
         """Ensure services (docker, gitlab-runner) are enabled and running when installed and registered."""
@@ -33,11 +37,7 @@ class GitLabRunner:
 
     def register(self):
         """Register this GitLab runner with the GitLab CI server."""
-        if (
-            self.gitlab_token
-            and self.gitlab_uri
-            and not self.kv.get("registered", False)
-        ):
+        if self.gitlab_token and self.gitlab_uri:
             hookenv.log("Registering GitLab runner with {}".format(self.gitlab_uri))
             hookenv.status_set("maintenance", "Registering with GitLab")
             # Docker executor
@@ -86,8 +86,6 @@ class GitLabRunner:
                 "/opt/lxd-executor/cleanup.sh",
             ]
             subprocess.check_call(command, stderr=subprocess.STDOUT)
-        elif self.kv.get("registered", False):
-            hookenv.log("Already registered, ignoring request to register")
         else:
             hookenv.log("Could not register gitlab runner due to missing token or uri")
             hookenv.status_set("blocked", "Unregistered due to missing token or URI")
@@ -133,15 +131,16 @@ class GitLabRunner:
 
     def setup_lxd(self):
         """Set up custom LXD executor scripts."""
-        templating.render("base.j2",
-                          self.executor_dir+"/base.sh",
-                          context="")
-        templating.render("prepare.j2",
-                          self.executor_dir+"/prepare.sh",
-                          context="")
-        templating.render("run.j2",
-                          self.executor_dir+"/run.sh",
-                          context="")
-        templating.render("cleanup.j2",
-                          self.executor_dir+"/cleanup.sh",
-                          context="")
+        templating.render("base.j2", self.executor_dir + "/base.sh", context="")
+        templating.render("prepare.j2", self.executor_dir + "/prepare.sh", context="")
+        templating.render("run.j2", self.executor_dir + "/run.sh", context="")
+        templating.render("cleanup.j2", self.executor_dir + "/cleanup.sh", context="")
+
+    def unregister(self):
+        """Unregister all runners."""
+        command = [
+            "/usr/bin/gitlab-runner",
+            "unregister",
+            "--all-runners",
+        ]
+        subprocess.check_call(command, stderr=subprocess.STDOUT)

@@ -56,7 +56,10 @@ def register_runner():
     uri, token = endpoint.get_server_credentials()
     glr.gitlab_token = token
     glr.gitlab_uri = uri
+    glr.kv.set("gitlab_token", token)
+    glr.kv.set("gitlab_uri", uri)
     hookenv.log("Registering runner url/token: {}/{}".format(uri, token))
+    glr.unregister()
     glr.register()
     set_flag("runner.registered")
 
@@ -65,3 +68,6 @@ def register_runner():
 def handle_relatin_departed():
     """Handle runner relation departure."""
     clear_flag("runner.registered")
+    glr.kv.set("gitlab_token", None)
+    glr.kv.set("gitlab_uri", None)
+    glr.unregister()
