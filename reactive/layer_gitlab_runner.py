@@ -22,6 +22,13 @@ def install_gitlab_runner():
     set_flag("layer-gitlab-runner.installed")
 
 
+@when_not("layer-gitlab-runner.lxd_setup")
+def setup_lxd_executor():
+    """Set up custom executor scripts for lxd executor."""
+    glr.setup_lxd()
+    set_flag("layer-gitlab-runner.lxd_setup")
+
+
 @when_not("layer-gitlab-runner.docker_installed")
 def install_docker():
     """Install docker during initial charm install as required by the GitLab Runner Docker executor."""
@@ -29,7 +36,11 @@ def install_docker():
     set_flag("layer-gitlab-runner.docker_installed")
 
 
-@when_all("layer-gitlab-runner.docker_installed", "layer-gitlab-runner.installed")
+@when_all(
+    "layer-gitlab-runner.docker_installed",
+    "layer-gitlab-runner.installed",
+    "layer-gitlab-runner.lxd_setup",
+)
 @when("config.changed")
 def configure_and_enable_gitlab_runner():
     """Upgrade, register and start the GitLab Runner and supporting services as configuration changes."""

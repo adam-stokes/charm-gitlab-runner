@@ -56,7 +56,15 @@ def mock_remote_unit(monkeypatch):
 @pytest.fixture
 def mock_charm_dir(monkeypatch):
     """Mock the charm directory location."""
-    monkeypatch.setattr("libgitlabrunner.hookenv.charm_dir", lambda: "/mock/charm/dir")
+    monkeypatch.setattr("libgitlabrunner.hookenv.charm_dir", lambda: ".")
+
+
+@pytest.fixture
+def mock_template(monkeypatch):
+    """Mock template library."""
+    monkeypatch.setattr("libgitlabrunner.templating.host.os.fchown", mock.Mock())
+    monkeypatch.setattr("libgitlabrunner.templating.host.os.chown", mock.Mock())
+    monkeypatch.setattr("libgitlabrunner.templating.host.os.fchmod", mock.Mock())
 
 
 @pytest.fixture
@@ -151,11 +159,14 @@ def mock_action_fail(monkeypatch):
 
 
 @pytest.fixture
-def gitlabrunner(tmpdir, mock_hookenv_config, mock_charm_dir, monkeypatch):
+def gitlabrunner(tmpdir, mock_hookenv_config, mock_charm_dir, mock_template, monkeypatch):
     """Mock the GitLab runner helper module used throughout the charm."""
     from libgitlabrunner import GitLabRunner
 
     glr = GitLabRunner()
+
+    executor_dir = tmpdir
+    glr.executor_dir = executor_dir
 
     # Example config file patching
     cfg_file = tmpdir.join("example.cfg")

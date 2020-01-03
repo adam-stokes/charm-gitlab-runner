@@ -2,7 +2,7 @@
 import subprocess
 from socket import gethostname
 
-from charmhelpers.core import hookenv, unitdata
+from charmhelpers.core import hookenv, templating, unitdata
 from charmhelpers.core.host import get_distrib_codename, service
 from charmhelpers.fetch import add_source, apt_install, apt_update
 
@@ -17,6 +17,7 @@ class GitLabRunner:
         self.gitlab_token = False
         self.gitlab_uri = False
         self.hostname = gethostname()
+        self.executor_dir = "/opt/lxd-executor"
         if self.charm_config["gitlab-token"]:
             self.gitlab_token = self.charm_config["gitlab-token"]
         if self.charm_config["gitlab-uri"]:
@@ -39,6 +40,7 @@ class GitLabRunner:
         ):
             hookenv.log("Registering GitLab runner with {}".format(self.gitlab_uri))
             hookenv.status_set("maintenance", "Registering with GitLab")
+            # Docker executor
             command = [
                 "/usr/bin/gitlab-runner",
                 "register",
@@ -48,13 +50,40 @@ class GitLabRunner:
                 "--registration-token",
                 "{}".format(self.gitlab_token),
                 "--name",
-                "{}".format(self.hostname),
+                "{}-docker".format(self.hostname),
                 "--tag-list",
-                "juju,docker",
+                "docker",
                 "--executor",
                 "docker",
                 "--docker-image",
                 "ubuntu:latest",
+            ]
+            subprocess.check_call(command, stderr=subprocess.STDOUT)
+            # LXD executor
+            command = [
+                "/usr/bin/gitlab-runner",
+                "register",
+                "--non-interactive",
+                "--url",
+                "{}".format(self.gitlab_uri),
+                "--registration-token",
+                "{}".format(self.gitlab_token),
+                "--name",
+                "{}-lxd".format(self.hostname),
+                "--tag-list",
+                "juju",
+                "--executor",
+                "custom",
+                "--builds-dir",
+                "/builds",
+                "--cache-dir",
+                "/cache",
+                "--custom-run-exec",
+                "/opt/lxd-executor/run.sh",
+                "--custom-prepare-exec",
+                "/opt/lxd-executor/prepare.sh",
+                "--custom-cleanup-exec",
+                "/opt/lxd-executor/cleanup.sh",
             ]
             subprocess.check_call(command, stderr=subprocess.STDOUT)
         elif self.kv.get("registered", False):
@@ -101,3 +130,18 @@ class GitLabRunner:
         self.upgrade()
         self.register()
         return True
+
+    def setup_lxd(self):
+        """Set up custom LXD executor scripts."""
+        templating.render("base.j2",
+                          self.executor_dir+"/base.sh",
+                          context="")
+        templating.render("prepare.j2",
+                          self.executor_dir+"/prepare.sh",
+                          context="")
+        templating.render("run.j2",
+                          self.executor_dir+"/run.sh",
+                          context="")
+        templating.render("cleanup.j2",
+                          self.executor_dir+"/cleanup.sh",
+                          context="")

@@ -67,7 +67,7 @@ def test_configure(
     gitlabrunner.configure()
     assert mock_apt_update.call_count == 2
     assert mock_apt_install.call_count == 2
-    test_command = [
+    test_docker = [
         "/usr/bin/gitlab-runner",
         "register",
         "--non-interactive",
@@ -76,12 +76,58 @@ def test_configure(
         "--registration-token",
         "mocked-token",
         "--name",
-        "mocked-hostname",
+        "mocked-hostname-docker",
         "--tag-list",
-        "juju,docker",
+        "docker",
         "--executor",
         "docker",
         "--docker-image",
         "ubuntu:latest",
     ]
-    mock_check_call.assert_called_once_with(test_command, stderr=subprocess.STDOUT)
+    test_lxd = [
+        "/usr/bin/gitlab-runner",
+        "register",
+        "--non-interactive",
+        "--url",
+        "mocked-uri",
+        "--registration-token",
+        "mocked-token",
+        "--name",
+        "mocked-hostname-lxd",
+        "--tag-list",
+        "juju",
+        "--executor",
+        "custom",
+        "--builds-dir",
+        "/builds",
+        "--cache-dir",
+        "/cache",
+        "--custom-run-exec",
+        "/opt/lxd-executor/run.sh",
+        "--custom-prepare-exec",
+        "/opt/lxd-executor/prepare.sh",
+        "--custom-cleanup-exec",
+        "/opt/lxd-executor/cleanup.sh",
+    ]
+    # mock_check_call.assert_called_with(test_command, stderr=subprocess.STDOUT)
+    calls = [call(test_docker, stderr=subprocess.STDOUT),
+             call(test_lxd, stderr=subprocess.STDOUT),
+             ]
+    mock_check_call.assert_has_calls(calls)
+
+
+def test_setup_lxd(gitlabrunner):
+    """Test the setup_lxd function of the helper module."""
+    gitlabrunner.setup_lxd()
+    with open(gitlabrunner.executor_dir+"/base.sh", "r") as basefile:
+        contents = basefile.read()
+        assert "# /opt/lxd-executor/base.sh" in contents
+    with open(gitlabrunner.executor_dir+"/prepare.sh", "r") as basefile:
+        contents = basefile.read()
+        assert "# /opt/lxd-executor/prepare.sh" in contents
+    with open(gitlabrunner.executor_dir+"/run.sh", "r") as basefile:
+        contents = basefile.read()
+        assert "# /opt/lxd-executor/run.sh" in contents
+    with open(gitlabrunner.executor_dir+"/cleanup.sh", "r") as basefile:
+        contents = basefile.read()
+        assert "# /opt/lxd-executor/cleanup.sh" in contents
