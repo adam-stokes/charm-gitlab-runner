@@ -1,9 +1,10 @@
 """GitLab Runner helper library for charm operations."""
+import fileinput
 import subprocess
 from socket import gethostname
 
 from charmhelpers.core import hookenv, templating, unitdata
-from charmhelpers.core.host import get_distrib_codename, service
+from charmhelpers.core.host import get_distrib_codename, service, add_user_to_group
 from charmhelpers.fetch import add_source, apt_install, apt_update
 
 
@@ -18,6 +19,8 @@ class GitLabRunner:
         self.gitlab_uri = False
         self.hostname = gethostname()
         self.executor_dir = "/opt/lxd-executor"
+        self.gitlab_user = "gitlab-runner"
+        self.runner_cfg_file = "/etc/gitlab-runner/config.toml"
         if self.charm_config["gitlab-token"]:
             self.gitlab_token = self.charm_config["gitlab-token"]
         else:
@@ -71,7 +74,7 @@ class GitLabRunner:
                 "--name",
                 "{}-lxd".format(self.hostname),
                 "--tag-list",
-                "juju",
+                "lxd",
                 "--executor",
                 "custom",
                 "--builds-dir",
@@ -125,16 +128,84 @@ class GitLabRunner:
 
     def configure(self):
         """Upgrade and register GitLab Runner, perform configuration changes when charm configuration is modified."""
-        self.upgrade()
+        # self.upgrade()
         self.register()
+        self.set_global_config()
         return True
 
     def setup_lxd(self):
         """Set up custom LXD executor scripts."""
-        templating.render("base.j2", self.executor_dir + "/base.sh", context="")
-        templating.render("prepare.j2", self.executor_dir + "/prepare.sh", context="")
-        templating.render("run.j2", self.executor_dir + "/run.sh", context="")
-        templating.render("cleanup.j2", self.executor_dir + "/cleanup.sh", context="")
+        templating.render(
+            "base.j2",
+            self.executor_dir + "/base.sh",
+            context="",
+            owner=self.gitlab_user,
+            group=self.gitlab_user,
+            perms=0o775,
+        )
+        templating.render(
+            "prepare.j2",
+            self.executor_dir + "/prepare.sh",
+            context="",
+            owner=self.gitlab_user,
+            group=self.gitlab_user,
+            perms=0o775,
+        )
+        templating.render(
+            "run.j2",
+            self.executor_dir + "/run.sh",
+            context="",
+            owner=self.gitlab_user,
+            group=self.gitlab_user,
+            perms=0o775,
+        )
+        templating.render(
+            "cleanup.j2",
+            self.executor_dir + "/cleanup.sh",
+            context="",
+            owner=self.gitlab_user,
+            group=self.gitlab_user,
+            perms=0o775,
+        )
+        add_user_to_group(self.gitlab_user, "lxd")
+        command = [
+            "lxd",
+            "init",
+            "--auto",
+        ]
+        subprocess.check_call(command, stderr=subprocess.STDOUT)
+        # command = [
+        #     "lxc",
+        #     "profile",
+        #     "set",
+        #     "default",
+        #     "security.nesting",
+        #     "true",
+        # ]
+        # subprocess.check_call(command, stderr=subprocess.STDOUT)
+        # command = [
+        #     "lxc",
+        #     "profile",
+        #     "set",
+        #     "default",
+        #     "security.privileged",
+        #     "true",
+        # ]
+        # subprocess.check_call(command, stderr=subprocess.STDOUT)
+
+    def set_global_config(self):
+        """Set the concurrency value."""
+        for line in fileinput.input(self.runner_cfg_file, inplace=True):
+            if line.startswith("concurrency"):
+                print(
+                    "concurrency = {}".format(self.charm_config["concurrency"]), end=""
+                )
+            if line.startswith("check_interval"):
+                print(
+                    "check_interval = {}".format(self.charm_config["check-interval"]),
+                    end="",
+                )
+            print(line, end="")
 
     def unregister(self):
         """Unregister all runners."""

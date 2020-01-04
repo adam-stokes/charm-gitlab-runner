@@ -95,7 +95,7 @@ def test_configure(
         "--name",
         "mocked-hostname-lxd",
         "--tag-list",
-        "juju",
+        "lxd",
         "--executor",
         "custom",
         "--builds-dir",

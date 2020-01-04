@@ -19,6 +19,7 @@ glr = GitLabRunner()
 def install_gitlab_runner():
     """Run upgrade helper function when GitLab Runner has not been installed previously to perform initial install."""
     glr.upgrade()
+    glr.set_global_config()
     set_flag("layer-gitlab-runner.installed")
 
 

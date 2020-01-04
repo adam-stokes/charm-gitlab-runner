@@ -10,8 +10,6 @@ set -eo pipefail
 # trap any error, and mark it as a system failure.
 trap "exit $SYSTEM_FAILURE_EXIT_CODE" ERR
 
-CONTAINER_ID="runner-$CUSTOM_ENV_CI_RUNNER_ID-project-$CUSTOM_ENV_CI_PROJECT_ID-concurrent-$CUSTOM_ENV_CI_CONCURRENT_PROJECT_ID"
-
 start_container () {
     if lxc info "$CONTAINER_ID" >/dev/null 2>/dev/null ; then
         echo 'Found old container, deleting'
@@ -22,7 +20,7 @@ start_container () {
     # does not provide the value of `image`. See
     # https://gitlab.com/gitlab-org/gitlab-runner/issues/4357 for
     # details.
-    lxc launch ubuntu:18.04 "$CONTAINER_ID"
+    lxc launch ubuntu:18.04 "$CONTAINER_ID" -c security.nesting=true -c security.privileged=true -c raw.lxc="lxc.apparmor.profile=unconfined"
 
     # Wait for container to start, we are using systemd to check this,
     # for the sake of brevity.
