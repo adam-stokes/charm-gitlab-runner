@@ -22,6 +22,7 @@ def test_upgrade(
     mock_apt_update,
     mock_get_distrib_codename,
     mock_add_source,
+    mock_service,
 ):
     """Test the upgrade function."""
     gitlabrunner.upgrade()
