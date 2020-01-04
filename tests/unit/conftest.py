@@ -66,6 +66,12 @@ def mock_template(monkeypatch):
     monkeypatch.setattr("libgitlabrunner.templating.host.os.fchown", mock.Mock())
     monkeypatch.setattr("libgitlabrunner.templating.host.os.chown", mock.Mock())
     monkeypatch.setattr("libgitlabrunner.templating.host.os.fchmod", mock.Mock())
+    mock_getpwname = mock.Mock()
+    mock_pw_uid = mock.Mock()
+    mock_pw_uid.return_value = '1000'
+    mock_getpwname.pw_uid = mock_pw_uid
+    monkeypatch.setattr("libgitlabrunner.templating.host.pwd.getpwnam", mock_getpwname)
+    monkeypatch.setattr("libgitlabrunner.templating.host.grp.getgrnam", mock_getpwname)
 
 
 @pytest.fixture
@@ -177,6 +183,7 @@ def gitlabrunner(
     mock_charm_dir,
     mock_template,
     mock_unit_db,
+    mock_check_call,
     monkeypatch,
 ):
     """Mock the GitLab runner helper module used throughout the charm."""
@@ -188,10 +195,10 @@ def gitlabrunner(
     glr.executor_dir = executor_dir
 
     # Example config file patching
-    cfg_file = tmpdir.join("example.cfg")
-    with open("./tests/unit/example.cfg", "r") as src_file:
+    cfg_file = tmpdir.join("config.toml")
+    with open("./tests/unit/config.toml", "r") as src_file:
         cfg_file.write(src_file.read())
-    glr.example_config_file = cfg_file.strpath
+    glr.runner_cfg_file = cfg_file.strpath
 
     # Any other functions that load helper will get this version
     monkeypatch.setattr("libgitlabrunner.GitLabRunner", lambda: glr)

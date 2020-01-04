@@ -7,7 +7,7 @@ options:
     type: string
     default: ""
     description: "The URI used when registering and communicating with the GitLab CI server"
-  concurency:
+  concurrency:
     type: int
     default: 3
     description: "Number of concurrent jobs for a runner"

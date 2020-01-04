@@ -198,7 +198,7 @@ class GitLabRunner:
         for line in fileinput.input(self.runner_cfg_file, inplace=True):
             if line.startswith("concurrency"):
                 print(
-                    "concurrency = {}".format(self.charm_config["concurrency"]), end=""
+                    "concurrent = {}".format(self.charm_config["concurrency"]), end=""
                 )
             if line.startswith("check_interval"):
                 print(

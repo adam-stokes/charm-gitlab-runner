@@ -44,7 +44,7 @@ def install_docker():
 )
 @when("config.changed")
 def configure_and_enable_gitlab_runner():
-    """Upgrade, register and start the GitLab Runner and supporting services as configuration changes."""
+    """Register, configure, and start the GitLab Runner and supporting services as configuration changes."""
     glr.configure()
     glr.ensure_services()
 

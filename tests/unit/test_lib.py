@@ -50,23 +50,17 @@ def test_ensure_services(gitlabrunner, mock_service):
 
 def test_configure(
     gitlabrunner,
-    mock_apt_install,
-    mock_apt_update,
     mock_get_distrib_codename,
     mock_check_call,
     mock_add_source,
 ):
     """Test the configure method called when the charm configured GitLab runner."""
     gitlabrunner.configure()
-    assert mock_apt_update.call_count == 1
-    assert mock_apt_install.call_count == 1
     assert mock_check_call.call_count == 0
     gitlabrunner.gitlab_uri = "mocked-uri"
     gitlabrunner.gitlab_token = "mocked-token"
     gitlabrunner.hostname = "mocked-hostname"
     gitlabrunner.configure()
-    assert mock_apt_update.call_count == 2
-    assert mock_apt_install.call_count == 2
     test_docker = [
         "/usr/bin/gitlab-runner",
         "register",
@@ -109,14 +103,14 @@ def test_configure(
         "--custom-cleanup-exec",
         "/opt/lxd-executor/cleanup.sh",
     ]
-    # mock_check_call.assert_called_with(test_command, stderr=subprocess.STDOUT)
     calls = [call(test_docker, stderr=subprocess.STDOUT),
              call(test_lxd, stderr=subprocess.STDOUT),
              ]
     mock_check_call.assert_has_calls(calls)
+    assert mock_check_call.call_count == 2
 
 
-def test_setup_lxd(gitlabrunner):
+def test_setup_lxd(gitlabrunner, mock_check_call):
     """Test the setup_lxd function of the helper module."""
     gitlabrunner.setup_lxd()
     with open(gitlabrunner.executor_dir+"/base.sh", "r") as basefile:
@@ -131,3 +125,4 @@ def test_setup_lxd(gitlabrunner):
     with open(gitlabrunner.executor_dir+"/cleanup.sh", "r") as basefile:
         contents = basefile.read()
         assert "# /opt/lxd-executor/cleanup.sh" in contents
+    assert mock_check_call.call_count == 2
