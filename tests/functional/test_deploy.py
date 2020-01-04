@@ -60,7 +60,7 @@ async def test_gitlabrunner_deploy(model, series, source, request):
     subprocess.check_call(cmd)
 
 
-@pytest.mark.timeout(60)
+@pytest.mark.timeout(90)
 @pytest.mark.deploy
 async def test_gitlab_deploy(model):
     """Deploy gitlab bundle."""
@@ -99,7 +99,7 @@ async def test_charm_upgrade(model, app):
 
 
 # Tests
-@pytest.mark.timeout(600)
+@pytest.mark.timeout(900)
 async def test_gitlabrunner_status(model, app):
     """Verify status of deployed unit."""
     # Verifies status for all deployed series of the charm
@@ -140,7 +140,7 @@ async def test_file_stat(app, jujutools):
     assert fstat.st_gid == 0
 
 
-@pytest.mark.timeout(420)
+@pytest.mark.timeout(900)
 async def test_gitlab_status(model):
     """Verify status of supporting deploy."""
     # Verifies status of the gitlab deploy to test against
@@ -158,7 +158,7 @@ async def test_gitlab_status(model):
 
 
 @pytest.mark.relate
-@pytest.mark.timeout(60)
+@pytest.mark.timeout(120)
 async def test_add_relation(model, app):
     """Verify the runner relation completes."""
     gitlab = model.applications["gitlab"]
