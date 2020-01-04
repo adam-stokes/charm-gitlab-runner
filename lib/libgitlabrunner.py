@@ -4,7 +4,7 @@ import subprocess
 from socket import gethostname
 
 from charmhelpers.core import hookenv, templating, unitdata
-from charmhelpers.core.host import get_distrib_codename, service, add_user_to_group
+from charmhelpers.core.host import add_user_to_group, get_distrib_codename, service
 from charmhelpers.fetch import add_source, apt_install, apt_update
 
 
@@ -197,15 +197,11 @@ class GitLabRunner:
         """Set the concurrency value."""
         for line in fileinput.input(self.runner_cfg_file, inplace=True):
             if line.startswith("concurrency"):
-                print(
-                    "concurrent = {}".format(self.charm_config["concurrency"]), end=""
-                )
-            if line.startswith("check_interval"):
-                print(
-                    "check_interval = {}".format(self.charm_config["check-interval"]),
-                    end="",
-                )
-            print(line, end="")
+                print("concurrent = {}".format(self.charm_config["concurrency"]))
+            elif line.startswith("check_interval"):
+                print("check_interval = {}".format(self.charm_config["check-interval"]))
+            else:
+                print(line, end="")
 
     def unregister(self):
         """Unregister all runners."""
@@ -214,4 +210,4 @@ class GitLabRunner:
             "unregister",
             "--all-runners",
         ]
-        subprocess.check_call(command, stderr=subprocess.STDOUT)
+        subprocess.call(command, stderr=subprocess.STDOUT)

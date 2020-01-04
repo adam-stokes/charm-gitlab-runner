@@ -126,3 +126,13 @@ def test_setup_lxd(gitlabrunner, mock_check_call):
         contents = basefile.read()
         assert "# /opt/lxd-executor/cleanup.sh" in contents
     assert mock_check_call.call_count == 2
+
+
+def test_set_global_config(gitlabrunner):
+    """Test the set_global_config function."""
+    gitlabrunner.set_global_config()
+    print(gitlabrunner.runner_cfg_file)
+    with open(gitlabrunner.runner_cfg_file, "r") as cfgfile:
+        contents = cfgfile.read()
+        assert "concurrent = 3\n" in contents
+        assert "check_interval = 0\n" in contents

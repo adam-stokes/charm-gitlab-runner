@@ -1,10 +1,12 @@
 #!/usr/bin/python3
 """Provide test fixtures for unit tests."""
+
+from charmhelpers.core import unitdata
+
 import mock
 
 import pytest
 
-from charmhelpers.core import unitdata
 
 # If layer options are used, add this to layergitlabrunner
 # and import layer in libgitlabrunner
