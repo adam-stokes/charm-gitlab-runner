@@ -1,4 +1,4 @@
 config:
-  raw.lxc: lxc.apparmor.profile=unconfined
+  raw.lxc: "lxc.apparmor.profile=unconfined"
   security.nesting: true
   security.privileged: true

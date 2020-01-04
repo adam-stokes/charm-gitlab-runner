@@ -29,25 +29,6 @@ def test_upgrade(
     mock_apt_install.assert_called_once()
 
 
-def test_ensure_services(gitlabrunner, mock_service):
-    """Test the ensure_services function of the helper module."""
-    gitlabrunner.ensure_services()
-    assert mock_service.call_count == 0
-    gitlabrunner.kv.set("registered", True)
-    gitlabrunner.ensure_services()
-    assert mock_service.call_count == 4
-    mock_service.assert_has_calls(
-        [
-            call("enable", "docker"),
-            call("start", "docker"),
-            call("enable", "gitlab-runner"),
-            call("start", "gitlab-runner"),
-        ],
-        any_order=True,
-    )
-    gitlabrunner.kv.set("registered", False)
-
-
 def test_configure(
     gitlabrunner,
     mock_get_distrib_codename,

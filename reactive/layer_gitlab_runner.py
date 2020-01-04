@@ -6,7 +6,6 @@ from charms.reactive import (
     endpoint_from_flag,
     set_flag,
     when,
-    when_all,
     when_not,
 )
 
@@ -19,7 +18,7 @@ glr = GitLabRunner()
 def install_gitlab_runner():
     """Run upgrade helper function when GitLab Runner has not been installed previously to perform initial install."""
     glr.upgrade()
-    glr.set_global_config()
+    hookenv.status_set("blocked", "Ready for registration via action or relation")
     set_flag("layer-gitlab-runner.installed")
 
 
@@ -37,16 +36,10 @@ def install_docker():
     set_flag("layer-gitlab-runner.docker_installed")
 
 
-@when_all(
-    "layer-gitlab-runner.docker_installed",
-    "layer-gitlab-runner.installed",
-    "layer-gitlab-runner.lxd_setup",
-)
-@when("config.changed")
+@when("config.changed", "layer-gitlab-runner.installed")
 def configure_and_enable_gitlab_runner():
     """Register, configure, and start the GitLab Runner and supporting services as configuration changes."""
     glr.configure()
-    glr.ensure_services()
 
 
 @when("endpoint.runner.available")
@@ -66,7 +59,7 @@ def register_runner():
 
 
 @when("endpoint.runner.departed")
-def handle_relatin_departed():
+def handle_relation_departed():
     """Handle runner relation departure."""
     clear_flag("runner.registered")
     glr.kv.set("gitlab_token", None)

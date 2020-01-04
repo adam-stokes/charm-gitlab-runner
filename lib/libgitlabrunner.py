@@ -30,14 +30,6 @@ class GitLabRunner:
         else:
             self.gitlab_uri = self.kv.get("gitlab_uri", None)
 
-    def ensure_services(self):
-        """Ensure services (docker, gitlab-runner) are enabled and running when installed and registered."""
-        if self.kv.get("registered", False):
-            service("enable", "docker")
-            service("start", "docker")
-            service("enable", "gitlab-runner")
-            service("start", "gitlab-runner")
-
     def register(self):
         """Register this GitLab runner with the GitLab CI server."""
         if self.gitlab_token and self.gitlab_uri:
@@ -118,18 +110,21 @@ class GitLabRunner:
     def install_docker(self):
         """Install Docker which is required for running jobs."""
         apt_install("docker.io")
+        service("enable", "docker")
+        service("start", "docker")
 
     def upgrade(self):
         """Install or upgrade the GitLab runner packages, adding APT sources as needed."""
         self.add_sources()
         apt_update()
         apt_install("gitlab-runner")
+        self.set_global_config()
+        service("enable", "gitlab-runner")
+        service("start", "gitlab-runner")
         return True
 
     def configure(self):
-        """Upgrade and register GitLab Runner, perform configuration changes when charm configuration is modified."""
-        # self.upgrade()
-        self.register()
+        """Register GitLab Runner and perform configuration changes when charm configuration is modified."""
         self.set_global_config()
         return True
 
@@ -174,29 +169,11 @@ class GitLabRunner:
             "--auto",
         ]
         subprocess.check_call(command, stderr=subprocess.STDOUT)
-        # command = [
-        #     "lxc",
-        #     "profile",
-        #     "set",
-        #     "default",
-        #     "security.nesting",
-        #     "true",
-        # ]
-        # subprocess.check_call(command, stderr=subprocess.STDOUT)
-        # command = [
-        #     "lxc",
-        #     "profile",
-        #     "set",
-        #     "default",
-        #     "security.privileged",
-        #     "true",
-        # ]
-        # subprocess.check_call(command, stderr=subprocess.STDOUT)
 
     def set_global_config(self):
         """Set the concurrency value."""
         for line in fileinput.input(self.runner_cfg_file, inplace=True):
-            if line.startswith("concurrency"):
+            if line.startswith("concurrent"):
                 print("concurrent = {}".format(self.charm_config["concurrency"]))
             elif line.startswith("check_interval"):
                 print("check_interval = {}".format(self.charm_config["check-interval"]))
@@ -210,4 +187,4 @@ class GitLabRunner:
             "unregister",
             "--all-runners",
         ]
-        subprocess.call(command, stderr=subprocess.STDOUT)
+        subprocess.check_call(command, stderr=subprocess.STDOUT)
