@@ -29,19 +29,19 @@ def test_upgrade(
     mock_apt_install.assert_called_once()
 
 
-def test_configure(
+def test_register(
     gitlabrunner,
     mock_get_distrib_codename,
     mock_check_call,
     mock_add_source,
 ):
     """Test the configure method called when the charm configured GitLab runner."""
-    gitlabrunner.configure()
+    gitlabrunner.register()
     assert mock_check_call.call_count == 0
     gitlabrunner.gitlab_uri = "mocked-uri"
     gitlabrunner.gitlab_token = "mocked-token"
     gitlabrunner.hostname = "mocked-hostname"
-    gitlabrunner.configure()
+    gitlabrunner.register()
     test_docker = [
         "/usr/bin/gitlab-runner",
         "register",
