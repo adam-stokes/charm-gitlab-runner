@@ -110,6 +110,7 @@ class GitLabRunner:
     def install_docker(self):
         """Install Docker which is required for running jobs."""
         apt_install("docker.io")
+        add_user_to_group(self.gitlab_user, "docker")
         service("enable", "docker")
         service("start", "docker")
 
