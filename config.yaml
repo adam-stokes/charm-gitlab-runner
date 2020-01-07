@@ -7,3 +7,11 @@ options:
     type: string
     default: ""
     description: "The URI used when registering and communicating with the GitLab CI server"
+  concurrency:
+    type: int
+    default: 3
+    description: "Number of concurrent jobs for a runner"
+  check-interval:
+    type: int
+    default: 0
+    description: "Seconds a runner waits between checks for each executor."

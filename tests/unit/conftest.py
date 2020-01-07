@@ -1,5 +1,8 @@
 #!/usr/bin/python3
 """Provide test fixtures for unit tests."""
+
+from charmhelpers.core import unitdata
+
 import mock
 
 import pytest
@@ -56,7 +59,21 @@ def mock_remote_unit(monkeypatch):
 @pytest.fixture
 def mock_charm_dir(monkeypatch):
     """Mock the charm directory location."""
-    monkeypatch.setattr("libgitlabrunner.hookenv.charm_dir", lambda: "/mock/charm/dir")
+    monkeypatch.setattr("libgitlabrunner.hookenv.charm_dir", lambda: ".")
+
+
+@pytest.fixture
+def mock_template(monkeypatch):
+    """Mock template library."""
+    monkeypatch.setattr("libgitlabrunner.templating.host.os.fchown", mock.Mock())
+    monkeypatch.setattr("libgitlabrunner.templating.host.os.chown", mock.Mock())
+    monkeypatch.setattr("libgitlabrunner.templating.host.os.fchmod", mock.Mock())
+    mock_getpwname = mock.Mock()
+    mock_pw_uid = mock.Mock()
+    mock_pw_uid.return_value = '1000'
+    mock_getpwname.pw_uid = mock_pw_uid
+    monkeypatch.setattr("libgitlabrunner.templating.host.pwd.getpwnam", mock_getpwname)
+    monkeypatch.setattr("libgitlabrunner.templating.host.grp.getgrnam", mock_getpwname)
 
 
 @pytest.fixture
@@ -86,6 +103,7 @@ def mock_apt_update(monkeypatch):
 @pytest.fixture
 def mock_add_source(monkeypatch):
     """Mock the charmhelpers fetch add_source method."""
+
     def print_add_source(line, key):
         print("Mocked add source: {} ({})".format(line, key))
         return True
@@ -100,13 +118,16 @@ def mock_add_source(monkeypatch):
 def mock_get_distrib_codename(monkeypatch):
     """Mock the distribution codename as returned by get_destrib_codename."""
     mocked_get_distrib_codename = mock.Mock(returnvalue="bionic")
-    monkeypatch.setattr("libgitlabrunner.get_distrib_codename", mocked_get_distrib_codename)
+    monkeypatch.setattr(
+        "libgitlabrunner.get_distrib_codename", mocked_get_distrib_codename
+    )
     return mocked_get_distrib_codename
 
 
 @pytest.fixture
 def mock_check_call(monkeypatch):
     """Mock check_call to mock process executions."""
+
     def print_check_call(args, *, kwargs={}):
         print(args)
         return True
@@ -128,9 +149,8 @@ def mock_log(monkeypatch):
 @pytest.fixture
 def mock_gethostname(monkeypatch):
     """Mock gethostname to return consistent hostnames during testing."""
-    mocked_gethostname = mock.Mock(returnvalue='mocked-hostname')
-    monkeypatch.setattr("libgitlabrunner.gethostname",
-                        mocked_gethostname)
+    mocked_gethostname = mock.Mock(returnvalue="mocked-hostname")
+    monkeypatch.setattr("libgitlabrunner.gethostname", mocked_gethostname)
     return mocked_gethostname
 
 
@@ -151,17 +171,36 @@ def mock_action_fail(monkeypatch):
 
 
 @pytest.fixture
-def gitlabrunner(tmpdir, mock_hookenv_config, mock_charm_dir, monkeypatch):
+def mock_unit_db(monkeypatch):
+    """Mock the key value store."""
+    mock_kv = mock.Mock()
+    mock_kv.return_value = unitdata.Storage(path=":memory:")
+    monkeypatch.setattr("libgitlabrunner.unitdata.kv", mock_kv)
+
+
+@pytest.fixture
+def gitlabrunner(
+    tmpdir,
+    mock_hookenv_config,
+    mock_charm_dir,
+    mock_template,
+    mock_unit_db,
+    mock_check_call,
+    monkeypatch,
+):
     """Mock the GitLab runner helper module used throughout the charm."""
     from libgitlabrunner import GitLabRunner
 
     glr = GitLabRunner()
 
+    executor_dir = tmpdir
+    glr.executor_dir = executor_dir
+
     # Example config file patching
-    cfg_file = tmpdir.join("example.cfg")
-    with open("./tests/unit/example.cfg", "r") as src_file:
+    cfg_file = tmpdir.join("config.toml")
+    with open("./tests/unit/config.toml", "r") as src_file:
         cfg_file.write(src_file.read())
-    glr.example_config_file = cfg_file.strpath
+    glr.runner_cfg_file = cfg_file.strpath
 
     # Any other functions that load helper will get this version
     monkeypatch.setattr("libgitlabrunner.GitLabRunner", lambda: glr)
