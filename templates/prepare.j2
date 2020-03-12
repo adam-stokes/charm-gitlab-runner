@@ -13,6 +13,13 @@ trap "exit $SYSTEM_FAILURE_EXIT_CODE" ERR
 # default to Ubuntu 18.04 if none has been set with the 'image' keyword in the .gitlab-ci.yml
 CUSTOM_ENV_CI_JOB_IMAGE="${CUSTOM_ENV_CI_JOB_IMAGE:-ubuntu:18.04}"
 
+prepare_network () {
+
+    # prevent name collisions when using nested LXD on .lxd
+    lxc network set lxdbr0 dns.domain juju-gitlab-runner 
+
+}
+
 start_container () {
     if lxc info "$CONTAINER_ID" >/dev/null 2>/dev/null ; then
         echo 'Found old container, deleting'
@@ -60,6 +67,8 @@ install_dependencies () {
 }
 
 echo "Running in $CONTAINER_ID"
+
+prepare_network
 
 start_container
 
