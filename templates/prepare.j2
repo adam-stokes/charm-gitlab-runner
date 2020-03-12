@@ -25,15 +25,11 @@ start_container () {
     else
 	lxc profile create gitlab
     fi
-    lxc profile set gitlab security.nesting=true
-    lxc profile set gitlab security.privileged=true
+    lxc profile set gitlab security.nesting true
+    lxc profile set gitlab security.privileged true
     printf "lxc.apparmor.profile=unconfined\nlxc.mount.auto=sys:rw\n" | lxc profile set gitlab raw.lxc -
 
-    # Container image is harcoded at the moment, since Custom executor
-    # does not provide the value of `image`. See
-    # https://gitlab.com/gitlab-org/gitlab-runner/issues/4357 for
-    # details.
-    lxc launch "$CUSTOM_ENV_CI_JOB_IMAGE" "$CONTAINER_ID" -p gitlab
+    lxc launch "$CUSTOM_ENV_CI_JOB_IMAGE" "$CONTAINER_ID" -p gitlab -p default
 
     # Wait for container to start, we are using systemd to check this,
     # for the sake of brevity.
