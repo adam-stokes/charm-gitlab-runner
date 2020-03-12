@@ -10,17 +10,30 @@ set -eo pipefail
 # trap any error, and mark it as a system failure.
 trap "exit $SYSTEM_FAILURE_EXIT_CODE" ERR
 
+# default to Ubuntu 18.04 if none has been set with the 'image' keyword in the .gitlab-ci.yml
+CUSTOM_ENV_CI_JOB_IMAGE="${CUSTOM_ENV_CI_JOB_IMAGE:-ubuntu:18.04}"
+
 start_container () {
     if lxc info "$CONTAINER_ID" >/dev/null 2>/dev/null ; then
         echo 'Found old container, deleting'
         lxc delete -f "$CONTAINER_ID"
     fi
 
+    # make sure profile is configured correctly
+    if lxc profile show gitlab > /dev/null 2> /dev/null ; then
+        echo 'Found existing profile, skipping creation'
+    else
+	lxc profile create gitlab
+    fi
+    lxc profile set gitlab security.nesting=true
+    lxc profile set gitlab security.privileged=true
+    printf "lxc.apparmor.profile=unconfined\nlxc.mount.auto=sys:rw\n" | lxc profile set gitlab raw.lxc -
+
     # Container image is harcoded at the moment, since Custom executor
     # does not provide the value of `image`. See
     # https://gitlab.com/gitlab-org/gitlab-runner/issues/4357 for
     # details.
-    lxc launch ubuntu:18.04 "$CONTAINER_ID" -c security.nesting=true -c security.privileged=true -c raw.lxc="lxc.apparmor.profile=unconfined"
+    lxc launch "$CUSTOM_ENV_CI_JOB_IMAGE" "$CONTAINER_ID" -p gitlab
 
     # Wait for container to start, we are using systemd to check this,
     # for the sake of brevity.
