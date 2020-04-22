@@ -95,7 +95,7 @@ class GitLabRunner:
         # https://packages.gitlab.com/runner/gitlab-runner/gpgkey
         # https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ bionic main
         distro = get_distrib_codename()
-        apt_key = "14219A96E15E78F4"
+        apt_key = "3F01618A51312F3F"
         apt_line = "deb https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ {} main".format(
             distro
         )
