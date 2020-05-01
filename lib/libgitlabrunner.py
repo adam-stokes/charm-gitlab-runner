@@ -21,6 +21,7 @@ class GitLabRunner:
         self.executor_dir = "/opt/lxd-executor"
         self.gitlab_user = "gitlab-runner"
         self.runner_cfg_file = "/etc/gitlab-runner/config.toml"
+        self.apt_key = "3F01618A51312F3F"
         if self.charm_config["gitlab-token"]:
             self.gitlab_token = self.charm_config["gitlab-token"]
         else:
@@ -95,7 +96,7 @@ class GitLabRunner:
         # https://packages.gitlab.com/runner/gitlab-runner/gpgkey
         # https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ bionic main
         distro = get_distrib_codename()
-        apt_key = "3F01618A51312F3F"
+        apt_key = self.apt_key
         apt_line = "deb https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ {} main".format(
             distro
         )
@@ -105,6 +106,7 @@ class GitLabRunner:
             )
         )
         add_source(apt_line, apt_key)
+        self.kv.set('apt_key', apt_key)
         return True
 
     def install_docker(self):
