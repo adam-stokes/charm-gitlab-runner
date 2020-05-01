@@ -37,7 +37,7 @@ async def app(model, series, source):
     return await model._wait_for_new("application", app_name)
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(45)
 @pytest.mark.deploy
 async def test_gitlabrunner_deploy(model, series, source, request):
     """Deploy gitlab-runner."""
@@ -158,7 +158,7 @@ async def test_gitlab_status(model):
 
 
 @pytest.mark.relate
-@pytest.mark.timeout(120)
+@pytest.mark.timeout(240)
 async def test_add_relation(model, app):
     """Verify the runner relation completes."""
     gitlab = model.applications["gitlab"]

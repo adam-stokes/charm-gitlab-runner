@@ -7,11 +7,18 @@ from charms.reactive import (
     set_flag,
     when,
     when_not,
+    hook,
 )
 
 from libgitlabrunner import GitLabRunner
 
 glr = GitLabRunner()
+
+
+@hook('upgrade-charm')
+def handle_upgrade():
+    if not glr.kv.get('apt_key') == glr.apt_key:
+        glr.add_source()
 
 
 @when_not("layer-gitlab-runner.installed")
