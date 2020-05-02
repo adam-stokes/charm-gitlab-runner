@@ -18,7 +18,7 @@ glr = GitLabRunner()
 @hook('upgrade-charm')
 def handle_upgrade():
     if not glr.kv.get('apt_key') == glr.apt_key:
-        glr.add_source()
+        glr.add_sources()
 
 
 @when_not("layer-gitlab-runner.installed")
